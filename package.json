@@ -1,0 +1,25 @@
+{
+  "name": "tally_ai",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "node src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./src/app.js"
+  },
+  "keywords": [],
+  "author": "Lnk",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "joi": "^17.9.2",
+    "lodash": "^4.17.21",
+    "lowdb": "^6.0.1",
+    "openai": "^3.3.0"
+  }
+}

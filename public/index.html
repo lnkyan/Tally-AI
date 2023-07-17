@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TallyAI</title>
+    <style>
+        #app {
+            width: 1000px;
+            margin: 0 auto;
+        }
+    </style>
+
+    <link rel="stylesheet" href="https://unpkg.com/element-plus@2.3.8/dist/index.css">
+    <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <script src="https://unpkg.com/echarts@5.4.2"></script>
+    <script src="https://unpkg.com/element-plus@2.3.8"></script>
+</head>
+
+<body>
+
+    <div id="app">
+
+        <el-row>
+            <el-col :span="15">
+                <el-row style="margin-top: 20px;">
+                    <el-col :span="18">
+                        <el-input v-model="input" @keyup.enter="addTransaction"></el-input>
+                    </el-col>
+                    <el-col :span="6">
+                        <el-button @click="addTransaction">Submit</el-button>
+                    </el-col>
+                    <div v-loading="loading" style="width: 100%; height: 250px;">{{ result }}</div>
+                </el-row>
+            </el-col>
+
+            <el-col :span="8" :offset="1">
+                <div ref="chart" style="width: 100%; height: 333px;"></div>
+            </el-col>
+        </el-row>
+
+        <el-table :data="tableData" style="width: 100%">
+            <el-table-column prop="date" label="日期"></el-table-column>
+            <el-table-column prop="amount" label="金额"></el-table-column>
+            <el-table-column prop="type" label="类型"></el-table-column>
+            <el-table-column prop="category" label="分类"></el-table-column>
+            <el-table-column prop="isCounted" label="计入统计"></el-table-column>
+            <el-table-column prop="remark" label="备注"></el-table-column>
+            <el-table-column prop="src" label="原话"></el-table-column>
+        </el-table>
+
+    </div>
+
+    <script>
+        const { createApp, reactive, onMounted, ref } = Vue
+
+        const app = createApp({
+            setup() {
+                const input = ref('')
+                const result = ref('')
+                const loading = ref(false)
+                const chart = ref(null)
+                const tableData = reactive([])
+
+                onMounted(async () => {
+                    chart.value = echarts.init(chart.value)
+
+                    await loadChart()
+                    await loadTable()
+                })
+
+                // 获取数据并设置 chart 配置
+                async function loadChart() {
+                    const resp = await fetch('/transaction/groupByType')
+                    const data = await resp.json()
+
+                    const option = {
+                        series: [{
+                            name: 'Usage',
+                            type: 'pie',
+                            data: Object.entries(data).map(([name, value]) => {
+                                return {
+                                    name,
+                                    value: (value / 100).toFixed(2)
+                                }
+                            }),
+                            label: {
+                                show: true,
+                                formatter: '{b}: {c}'
+                            }
+                        }]
+                    }
+
+                    chart.value.setOption(option)
+                }
+
+                // 获取数据并设置 tableData
+                async function loadTable() {
+                    const resp = await fetch('/transaction/list')
+                    const transactions = await resp.json()
+
+                    transactions.forEach(transaction => {
+                        transaction.date = new Date(transaction.date).toLocaleDateString()
+                        transaction.amount /= 100
+                    })
+
+                    tableData.splice(0, tableData.length, ...transactions)
+                }
+
+                // 提交记录
+                async function addTransaction() {
+                    const text = input.value
+
+                    loading.value = true
+                    const resp = await fetch('/transaction/add_ai', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ text })
+                    })
+
+                    result.value = await resp.text()
+
+                    await loadChart()
+                    await loadTable()
+
+                    input.value = ''
+                    loading.value = false
+                }
+
+                return {
+                    input,
+                    result,
+                    loading,
+                    chart,
+                    tableData,
+                    addTransaction
+                }
+            }
+        })
+        app.use(ElementPlus)
+        app.mount('#app')
+    </script>
+</body>
+
+</html>
