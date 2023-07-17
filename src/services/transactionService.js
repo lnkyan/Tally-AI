@@ -9,7 +9,6 @@ import transactionModel from '../models/transactionModel.js';
  * @param {number} transaction.amount - 金额
  * @param {string} transaction.type - 收入或支出
  * @param {string} transaction.category - 类别 
- * @param {boolean} transaction.isCounted - 是否计入统计
  * @param {string} transaction.remark - 备注
  */
 async function addTransaction(transaction) {
@@ -38,12 +37,7 @@ async function groupByType(start, end) {
         .filter(transaction => transaction.date >= start && transaction.date <= end)
         .groupBy('type')
         .mapValues(transactions =>
-            transactions.reduce((total, r) => {
-                if (r.isCounted) {
-                    total += r.amount;
-                }
-                return total;
-            }, 0)
+            transactions.reduce((total, r) => total + r.amount, 0)
         )
         .value();
 }

@@ -1,4 +1,4 @@
-import openai from './openai.js';
+import ai from './openai.js';
 import transactionModel from '../models/transactionModel.js';
 import { TRANSACTION_CATEGORIES, TRANSACTION_TYPES } from '../models/transactionConst.js';
 
@@ -25,7 +25,6 @@ async function chatWithAccountAssistant(text) {
                         enum: TRANSACTION_CATEGORIES.map(item => item.name),
                         description: '账单分类'
                     },
-                    isCounted: { type: 'boolean', description: '是否计入统计' },
                     remark: { type: 'string', description: '备注' },
                 },
                 required: ['amountYuan', 'type', 'category', 'remark'],
@@ -45,27 +44,22 @@ async function chat(systemRole, systemMessage, userMessage, functionDescriptions
         { role: systemRole, content: systemMessage },
         { role: 'user', content: userMessage },
     ]
+    const functions = functionDescriptions.map(({ name, description, parameters }) => ({ name, description, parameters }))
 
     while (maxCall--) {
-        const response = await openai.createChatCompletion({
-            model: "gpt-3.5-turbo",
-            messages,
-            functions: functionDescriptions.map(({ name, description, parameters }) => ({ name, description, parameters })),
-            function_call: maxCall === 0 ? 'none' : 'auto'
-        });
-        const responseData = response.data.choices[0]
-        const message = responseData.message
-        messages.push(message)
+        const { messageData, finishReason } = await ai.chat(messages, maxCall ? functions : []);
+        messages.push(messageData)
 
-        if (responseData.finish_reason === 'function_call') {
-            const fnResult = await callFunction(functionDescriptions, message.function_call.name, message.function_call.arguments, userMessage)
+        if (finishReason === 'function_call') {
+            const callData = messageData.function_call
+            const fnResult = await callFunction(functionDescriptions, callData.name, callData.arguments, userMessage)
             messages.push({
                 role: 'function',
                 name: 'addTransaction',
                 content: fnResult,
             })
         } else {
-            return message.content
+            return messageData.content
         }
     }
 }
@@ -90,7 +84,7 @@ async function callFunction(functionDescriptions, functionName, argsText, userMe
 }
 
 async function callAddTransaction(argsText, userMessage) {
-    let { year, month, day, amountYuan, type, category, isCounted = true, remark } = JSON.parse(argsText)
+    let { year, month, day, amountYuan, type, category, remark } = JSON.parse(argsText)
 
     const today = new Date()
     // AI总是默认为在说21年，这里改为默认在说今年
@@ -103,12 +97,14 @@ async function callAddTransaction(argsText, userMessage) {
     // 使用当前的时分秒，这样添加同一天的记录时，自然就排好序了
     const date = today.getTime()
 
+    // 不需要负数金额
+    amountYuan = Math.abs(amountYuan)
+
     const transaction = {
         date,
         amount: Math.round(amountYuan * 100),
         type,
         category,
-        isCounted,
         remark,
         src: userMessage
     }

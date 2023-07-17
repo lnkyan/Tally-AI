@@ -24,7 +24,6 @@ const transactionSchema = Joi.object({
     amount: Joi.number().required(),
     type: Joi.string().valid(...TRANSACTION_TYPES).required(),
     category: Joi.string().valid(...TRANSACTION_CATEGORIES.map(item => item.name)).required(),
-    isCounted: Joi.boolean().default(true),
     remark: Joi.string().required(),
     src: Joi.string(),
 });

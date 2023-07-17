@@ -11,12 +11,16 @@ const router = express.Router();
  * @route GET /transaction/list
  * @returns {object[]} transactions - 记账记录数组
  */
-async function listTransactions(req, res) {
-    const transactions = await transactionService.listTransactions()
+async function listTransactions(req, res, next) {
+    try {
+        const transactions = await transactionService.listTransactions()
 
-    transactions.sort((a, b) => b.date - a.date)
+        transactions.sort((a, b) => b.date - a.date)
 
-    res.json(transactions);
+        res.json(transactions);
+    } catch (e) {
+        next(e)
+    }
 }
 
 /**
@@ -26,16 +30,21 @@ async function listTransactions(req, res) {
  * @param {object} req.body - 记录对象
  * @returns {string} ok
  */
-async function addTransaction(req, res) {
+async function addTransaction(req, res, next) {
     const transaction = req.body;
 
     // 参数验证
     const { error } = transactionSchema.validate(transaction);
     if (error) {
-        return res.status(400).send(error.details[0].message);
+        next(error)
+        return
     }
 
-    await transactionService.addTransaction(transaction);
+    try {
+        await transactionService.addTransaction(transaction);
+    } catch (e) {
+        next(e)
+    }
 
     res.send('ok');
 }
@@ -46,12 +55,12 @@ async function addTransaction(req, res) {
  * @param {string} req.body.text - 自然语言字符串
  * @returns {string} AI回复的内容
  */
-async function addTransactionAi(req, res) {
+async function addTransactionAi(req, res, next) {
     try {
         const result = await aiService.chatWithAccountAssistant(req.body.text)
         res.send(result || 'ok');
     } catch (e) {
-        return res.status(400).send(e.message);
+        next(e)
     }
 }
 
@@ -61,17 +70,21 @@ async function addTransactionAi(req, res) {
  * @param {number} start.query - 起始日期,默认本月1号
  * @param {number} end.query - 结束日期,默认今天
  */
-async function groupByType(req, res) {
-    const firstDay = new Date(Date.now())
-    firstDay.setDate(1);
-    firstDay.setHours(0, 0, 0, 0);
+async function groupByType(req, res, next) {
+    try {
+        const firstDay = new Date(Date.now())
+        firstDay.setDate(1);
+        firstDay.setHours(0, 0, 0, 0);
 
-    const start = parseInt(req.query.start) || firstDay.getTime();
-    const end = parseInt(req.query.end) || Date.now();
+        const start = parseInt(req.query.start) || firstDay.getTime();
+        const end = parseInt(req.query.end) || Date.now();
 
-    const results = await transactionService.groupByType(start, end)
+        const results = await transactionService.groupByType(start, end)
 
-    res.json(results);
+        res.json(results);
+    } catch (e) {
+        next(e)
+    }
 }
 
 // Router 定义

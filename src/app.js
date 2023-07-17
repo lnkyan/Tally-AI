@@ -17,6 +17,11 @@ app.use(express.static(path.resolve(__dirname, '../public')));
 app.use(bodyParser.json());
 // 挂载API路由
 app.use(routes);
+// 异常处理
+app.use((err, req, res, next) => {
+  console.error(err)
+  res.status(500).send(err.message);
+});
 
 // 启动服务器
 const port = 3000;
