@@ -1,15 +1,26 @@
 # Tally-AI
-利用chatGPT的[函数调用](https://platform.openai.com/docs/guides/gpt/function-calling)功能实现的自然语言记账小管家
+一个使用自然语言的个人账目管理应用
 
+## 介绍
+Tally-AI是一个利用chatGPT[函数调用](https://platform.openai.com/docs/guides/gpt/function-calling)功能实现的个人账目管理小助手。它可以让你用自然语言记录日常收入和支出，并自动进行分类和账目统计。  
 该项目代码80%是由[Claude 2](https://claude.ai/)生成出来。调试和前端UI调整由人工完成
+
+主要功能
+- 使用自然语言记账
+- 支持语音输入
+- 支持收入和支出记账
+- 自动分类账目
+- 账目数据统计(收入、支出总金额及分类金额)
+- 账目数据展示(表格和图表)
 
 ### Demo
 ![demo](https://raw.githubusercontent.com/lnkyan/Tally-AI/master/public/demo.png)
 
 
 ## 快速开始
-### 环境需求
+### 依赖环境
 - Node.js v16+
+- NPM 6+
 - OpenAI的API Key，支持使用`gpt-3.5-turbo`模型
 
 ### 安装
@@ -18,24 +29,34 @@ npm install
 ```
 
 ### 配置
-复制`.env.example`创建`.env`文件，在其中填写OpenAI的API Key等信息。  
+复制`.env.example`文件为`.env`文件，并配置OpenAI API Key等信息。  
+```
+OPENAI_API_KEY=sk-****************************
+```
 也可以直接把这些变量配置为环境变量
 
 ### 运行
 ```
 npm start
 ```
-服务会运行在 [http://localhost:3000](http://localhost:3000)
+服务运行在 [http://localhost:3000](http://localhost:3000)
+
+### 使用说明
+打开http://localhost:3000，输入自然语言文本，记录日常收入和支出。例如:
+```
+今天吃饭花了15元
+```
+账目数据会自动记录和分类。可以在页面查看账目数据表格和分类统计图表。
 
 
 ## 项目结构
 ```
-├── src               源码目录
-│   ├── controllers   控制器层 
-│   ├── services      业务层
-│   ├── models        数据层
 ├── data              数据库目录
-└── public            静态资源目录
+├── public            静态资源目录
+└── src               源码目录
+    ├── controllers   控制器层 
+    ├── services      业务层
+    └── models        数据层
 ```
 
 
@@ -48,4 +69,4 @@ npm start
 
 
 ## 许可
-该项目使用 MIT 许可证。
+该项目使用 MIT 许可证，详情见`LICENSE`文件。

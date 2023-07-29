@@ -5,50 +5,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TallyAI</title>
-    <style>
-        #app {
-            width: 1000px;
-            margin: 0 auto;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 
     <link rel="stylesheet" href="https://unpkg.com/element-plus@2.3.8/dist/index.css">
     <script src="https://unpkg.com/vue@3.3.4/dist/vue.global.prod.js"></script>
     <script src="https://unpkg.com/echarts@5.4.2"></script>
     <script src="https://unpkg.com/element-plus@2.3.8"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue@2.1.0"></script>
 </head>
 
 <body>
 
     <div id="app">
+        <main>
+            <header>
+                <h1>Tally AI</h1>
+            </header>
 
-        <el-row>
-            <el-col :span="15">
-                <el-row style="margin-top: 20px;">
-                    <el-col :span="18">
-                        <el-input v-model="input" @keyup.enter="addTransaction"></el-input>
-                    </el-col>
-                    <el-col :span="6">
-                        <el-button @click="addTransaction">Submit</el-button>
-                    </el-col>
-                    <div v-loading="loading" style="width: 100%; height: 250px;">{{ result }}</div>
-                </el-row>
-            </el-col>
+            <el-row>
+                <el-col :span="15">
+                    <el-row style="margin-top: 20px;">
+                        <el-col :span="18">
+                            <el-input v-model="input" @keyup.enter="addTransaction">
+                                <template #append>
+                                    <el-button @click="voiceInput">
+                                        <Microphone style="width: 1em; height: 1em;" />
+                                    </el-button>
+                                </template>
+                            </el-input>
+                        </el-col>
+                        <el-col :span="6">
+                            <el-button @click="addTransaction">Submit</el-button>
+                        </el-col>
+                        <div v-loading="loading" style="width: 100%; height: 250px;">{{ result }}</div>
+                    </el-row>
+                </el-col>
 
-            <el-col :span="8" :offset="1">
-                <div ref="chart" style="width: 100%; height: 333px;"></div>
-            </el-col>
-        </el-row>
+                <el-col :span="8" :offset="1">
+                    <div ref="chart" style="width: 100%; height: 333px;"></div>
+                </el-col>
+            </el-row>
 
-        <el-table :data="tableData" style="width: 100%">
-            <el-table-column prop="date" label="日期"></el-table-column>
-            <el-table-column prop="amount" label="金额"></el-table-column>
-            <el-table-column prop="type" label="类型"></el-table-column>
-            <el-table-column prop="category" label="分类"></el-table-column>
-            <el-table-column prop="remark" label="备注"></el-table-column>
-            <el-table-column prop="src" label="原话"></el-table-column>
-        </el-table>
+            <h2>收支记录</h2>
+            <el-table :data="tableData" style="width: 100%" header-row-class-name="records-table-header">
+                <el-table-column prop="date" label="日期"></el-table-column>
+                <el-table-column prop="amount" label="金额"></el-table-column>
+                <el-table-column prop="type" label="类型"></el-table-column>
+                <el-table-column prop="category" label="分类"></el-table-column>
+                <el-table-column prop="remark" label="备注"></el-table-column>
+                <el-table-column prop="src" label="原话"></el-table-column>
+            </el-table>
 
+        </main>
     </div>
 
     <script>
@@ -129,17 +137,43 @@
                     loading.value = false
                 }
 
+                let recognition
+                // 使用Web Speech API识别语音
+                function voiceInput() {
+                    if (!recognition) {
+                        recognition = new webkitSpeechRecognition();
+
+                        recognition.addEventListener('result', (event) => {
+                            // 将识别结果填入文本框
+                            input.value = event.results[0][0].transcript;
+                        });
+                        recognition.addEventListener('start', () => {
+                            result.value = '开始语音输入..'
+                        })
+                        recognition.addEventListener('end', () => {
+                            result.value = '语音输入结束'
+                        })
+                    }
+
+                    recognition.start();
+                }
+
                 return {
                     input,
                     result,
                     loading,
                     chart,
                     tableData,
-                    addTransaction
+                    addTransaction,
+                    voiceInput,
                 }
             }
         })
         app.use(ElementPlus)
+        // 注册图标组件
+        for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+            app.component(key, component)
+        }
         app.mount('#app')
     </script>
 </body>
