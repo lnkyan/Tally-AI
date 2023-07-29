@@ -14,7 +14,7 @@ Tally-AI是一个利用chatGPT[函数调用](https://platform.openai.com/docs/gu
 - 账目数据展示(表格和图表)
 
 ### Demo
-![demo](https://raw.githubusercontent.com/lnkyan/Tally-AI/master/public/demo.png)
+![demo](https://raw.githubusercontent.com/lnkyan/Tally-AI/master/public/demo.jpg)
 
 
 ## 快速开始
