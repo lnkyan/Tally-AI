@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import tunnel from 'tunnel'
 import { Configuration, OpenAIApi } from 'openai';
 

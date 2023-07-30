@@ -2,6 +2,7 @@
 
 import path from 'path';
 import { fileURLToPath } from 'url';
+import 'dotenv/config';
 import express from 'express';
 import bodyParser from 'body-parser';
 
@@ -24,7 +25,7 @@ app.use((err, req, res, next) => {
 });
 
 // 启动服务器
-const port = 3000;
+const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`TallyAI API running at http://localhost:${port}`);
 });

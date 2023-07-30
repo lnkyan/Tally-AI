@@ -29,9 +29,13 @@ npm install
 ```
 
 ### 配置
-复制`.env.example`文件为`.env`文件，并配置OpenAI API Key等信息。  
+复制`.env.example`文件为`.env`文件，并配置OpenAI API Key等信息。其中`OPENAI_API_KEY`是必填项。  
 ```
-OPENAI_API_KEY=sk-****************************
+OPENAI_API_KEY = sk-****************************
+OPENAI_API_BASE_URL = https://api.openai.com/v1
+OPENAI_API_PROXY_HOST = localhost
+OPENAI_API_PROXY_PORT = 1080
+PORT = 3000
 ```
 也可以直接把这些变量配置为环境变量
 
